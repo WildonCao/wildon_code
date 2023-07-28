@@ -1,0 +1,57 @@
+#首先python中要安装scipy和numpy两个库
+from scipy.optimize import curve_fit
+import numpy as np
+import os
+import matplotlib.pyplot as plt
+#work_path文件所在位置（不包含文件名）
+work_path = "F:\\application\\python\\Data_ReaxFF\\workbench\\1.species_out\\0.data\\"
+save_path = "F:\\application\\python\\Data_ReaxFF\\workbench\\1.species_out\\1.output\\"
+with open("F:\\application\\python\\Data_ReaxFF\\workbench\\1.species_out\\0.data\\ef.out", "r") as f:
+    line_count = len(f.readlines())
+T = [0]
+mols = ["No_Specs", "CO", "CO2", "OH2", "H2", "CH4", "C2H6", "C3H8", "C4H10", "C2H4", "C3H6", "C4H8", "C2H2", "C3H4", "C4H6", "N2", "H3N"]
+for mol in mols:
+    mol = [str(mol)]
+    myk = []
+    #step是文件共包含多少个输出
+    step =line_count
+    step_no = [[0]*(len(T)+1) for _ in range(step)]
+    data_files = os.listdir(work_path)
+    for m in range(len(T)):
+        data = open(work_path + data_files[m], 'r')
+        step = []
+        no = []
+        content = data.readlines()
+        for i in range(0,len(content),2):
+            line = content[i].split()
+            for j in range(len(line)):
+                if line[j] == mol[0]:
+                    line = content[i+1].split()
+                    #0是反应开始的lammps时间步数,自己设定
+                    if int(line[0]) >= 0:
+                        t = (int(line[0]) - 0)*0.1/1000
+                        step.append(t)
+                        no.append(float(line[j-1]))
+                    break
+        for n in range(len(no)):
+            step_no[n][0] = step[n]
+            step_no[n][m+1] = no[n]
+    step_no_file = open(save_path + str(mol[0])+".txt", 'w')
+    temp = len(step_no)
+    for i in range(len(step_no)):
+        line = ""
+        for j in range(len(step_no[0])):
+            if step_no[i][j] != 0:
+                line += str(step_no[i][j]) + " "
+        line += "\n"
+        step_no_file.write(line)
+    step_no_file.close()
+    with open(save_path +str(mol[0])+".txt", 'r') as input_file, open(save_path +"0_"+str(mol[0])+".txt", 'w') as output_file:
+        for line in input_file:
+            if not line.strip():  # 判断是否为空行或只包含空格
+                continue
+            output_file.write(line)
+    # 关闭文件
+    input_file.close()
+    output_file.close()
+
